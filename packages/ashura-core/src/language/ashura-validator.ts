@@ -2,6 +2,8 @@ import { AstUtils, type ValidationAcceptor, type ValidationChecks } from 'langiu
 import {
   isGlossary,
   isModel,
+  isTransition,
+  type Aggregate,
   type AshuraAstType,
   type EventDecl,
   type Model,
@@ -15,6 +17,7 @@ export function registerValidationChecks(registry: {
   const checks: ValidationChecks<AshuraAstType> = {
     EventDecl: validator.checkEventParamsInGlossary,
     VariableEntry: validator.checkVariableNameInGlossary,
+    Aggregate: validator.checkStateMachineCoverage,
   };
   registry.register(checks, validator);
 }
@@ -54,5 +57,57 @@ export class AshuraValidator {
     if (!glossaryTerms.has(node.name)) {
       accept('warning', `用語集に存在しない語です: ${node.name}`, { node, property: 'name' });
     }
+  }
+
+  checkStateMachineCoverage(node: Aggregate, accept: ValidationAcceptor): void {
+    if (node.states.length === 0) {
+      return;
+    }
+
+    const transitions = node.members
+      .filter(isTransition)
+      .map((t) => ({ from: t.from.ref?.name, to: t.to.ref?.name }))
+      .filter((t): t is { from: string; to: string } => t.from !== undefined && t.to !== undefined);
+
+    // 未定義遷移: 状態宣言チェーンが暗示する隣接ペアに対応する明示的な遷移が要る
+    for (let i = 0; i < node.states.length - 1; i++) {
+      const from = node.states[i].name;
+      const to = node.states[i + 1].name;
+      const hasExplicitTransition = transitions.some((t) => t.from === from && t.to === to);
+      if (!hasExplicitTransition) {
+        accept('error', `状態宣言チェーンに対応する遷移が定義されていません: ${from} -> ${to}`, {
+          node,
+          property: 'states',
+          index: i + 1,
+        });
+      }
+    }
+
+    // 到達不能状態: 状態宣言チェーンの先頭を初期状態とし、明示的な遷移だけを辺として到達可能性を判定する
+    const adjacency = new Map<string, string[]>();
+    for (const t of transitions) {
+      const targets = adjacency.get(t.from) ?? [];
+      targets.push(t.to);
+      adjacency.set(t.from, targets);
+    }
+
+    const initial = node.states[0].name;
+    const reached = new Set<string>([initial]);
+    const queue = [initial];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      for (const next of adjacency.get(current) ?? []) {
+        if (!reached.has(next)) {
+          reached.add(next);
+          queue.push(next);
+        }
+      }
+    }
+
+    node.states.forEach((state, index) => {
+      if (!reached.has(state.name)) {
+        accept('warning', `到達不能な状態です: ${state.name}`, { node, property: 'states', index });
+      }
+    });
   }
 }

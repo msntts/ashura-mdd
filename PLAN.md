@@ -53,7 +53,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 ## Phase C: LSP検査3種 [REVIEW]
 
 - [x] C-1. 語彙整合検査(用語集にない名詞参照を警告)+ 正常/異常フィクスチャ + テスト → [詳細](docs/briefs/step-C-1-vocabulary.md)
-- [ ] C-2. 状態機械網羅性検査(未定義遷移・到達不能状態)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-2-statemachine.md)
+- [x] C-2. 状態機械網羅性検査(未定義遷移・到達不能状態)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-2-statemachine.md)
 - [ ] C-3. フロー⇄集約参照整合検査(存在しないイベントへの契機参照をエラー)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-3-reference.md)
 
 ---
