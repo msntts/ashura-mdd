@@ -8,6 +8,8 @@ import * as langium from 'langium';
 
 export const AshuraTerminals = {
     ID: /[_a-zA-Z぀-ヿ一-鿿][\w぀-ヿ一-鿿]*/,
+    STRING: /"[^"]*"|'[^']*'/,
+    NUMBER: /-?[0-9]+/,
     WS: /\s+/,
     COMMENT: /#[^\n\r]*/,
 };
@@ -15,10 +17,393 @@ export const AshuraTerminals = {
 export type AshuraTerminalNames = keyof typeof AshuraTerminals;
 
 export type AshuraKeywordNames =
-    | "placeholder"
-    | "状態";
+    | "("
+    | ")"
+    | ","
+    | "->"
+    | ":"
+    | "["
+    | "]"
+    | "{"
+    | "}"
+    | "のとき"
+    | "イベント"
+    | "コマンド"
+    | "コンテキストマップ"
+    | "フロー"
+    | "ポリシー"
+    | "不変条件"
+    | "依存"
+    | "入力"
+    | "出力"
+    | "変数"
+    | "契機"
+    | "性質"
+    | "文脈"
+    | "文脈間"
+    | "条件"
+    | "検査"
+    | "横断制約"
+    | "決定表"
+    | "状態"
+    | "用語集"
+    | "禁止"
+    | "行"
+    | "連鎖上限"
+    | "遷移"
+    | "関係"
+    | "集約";
 
 export type AshuraTokenNames = AshuraTerminalNames | AshuraKeywordNames;
+
+export interface Aggregate extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'Aggregate';
+    members: Array<AggregateMember>;
+    name: string;
+    states: Array<State>;
+}
+
+export const Aggregate = {
+    $type: 'Aggregate',
+    members: 'members',
+    name: 'name',
+    states: 'states'
+} as const;
+
+export function isAggregate(item: unknown): item is Aggregate {
+    return reflection.isInstance(item, Aggregate.$type);
+}
+
+export type AggregateMember = Forbidden | InvariantBlock | Transition | VariableBlock;
+
+export const AggregateMember = {
+    $type: 'AggregateMember'
+} as const;
+
+export function isAggregateMember(item: unknown): item is AggregateMember {
+    return reflection.isInstance(item, AggregateMember.$type);
+}
+
+export interface ChainLimitDecl extends langium.AstNode {
+    readonly $container: Flow;
+    readonly $type: 'ChainLimitDecl';
+    value: number;
+}
+
+export const ChainLimitDecl = {
+    $type: 'ChainLimitDecl',
+    value: 'value'
+} as const;
+
+export function isChainLimitDecl(item: unknown): item is ChainLimitDecl {
+    return reflection.isInstance(item, ChainLimitDecl.$type);
+}
+
+export interface CommandDecl extends langium.AstNode {
+    readonly $container: Flow;
+    readonly $type: 'CommandDecl';
+    actor?: string;
+    event?: EventDecl;
+    name: string;
+}
+
+export const CommandDecl = {
+    $type: 'CommandDecl',
+    actor: 'actor',
+    event: 'event',
+    name: 'name'
+} as const;
+
+export function isCommandDecl(item: unknown): item is CommandDecl {
+    return reflection.isInstance(item, CommandDecl.$type);
+}
+
+export interface ContextDecl extends langium.AstNode {
+    readonly $container: ContextMap;
+    readonly $type: 'ContextDecl';
+    description?: string;
+    name: string;
+}
+
+export const ContextDecl = {
+    $type: 'ContextDecl',
+    description: 'description',
+    name: 'name'
+} as const;
+
+export function isContextDecl(item: unknown): item is ContextDecl {
+    return reflection.isInstance(item, ContextDecl.$type);
+}
+
+export interface ContextMap extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'ContextMap';
+    contexts: Array<ContextDecl>;
+    crossCutting?: CrossCuttingBlock;
+    relations: Array<RelationDecl>;
+}
+
+export const ContextMap = {
+    $type: 'ContextMap',
+    contexts: 'contexts',
+    crossCutting: 'crossCutting',
+    relations: 'relations'
+} as const;
+
+export function isContextMap(item: unknown): item is ContextMap {
+    return reflection.isInstance(item, ContextMap.$type);
+}
+
+export interface CrossCuttingBlock extends langium.AstNode {
+    readonly $container: ContextMap;
+    readonly $type: 'CrossCuttingBlock';
+    items: Array<CrossCuttingItem>;
+}
+
+export const CrossCuttingBlock = {
+    $type: 'CrossCuttingBlock',
+    items: 'items'
+} as const;
+
+export function isCrossCuttingBlock(item: unknown): item is CrossCuttingBlock {
+    return reflection.isInstance(item, CrossCuttingBlock.$type);
+}
+
+export interface CrossCuttingItem extends langium.AstNode {
+    readonly $container: CrossCuttingBlock;
+    readonly $type: 'CrossCuttingItem';
+    body: string;
+    name: string;
+}
+
+export const CrossCuttingItem = {
+    $type: 'CrossCuttingItem',
+    body: 'body',
+    name: 'name'
+} as const;
+
+export function isCrossCuttingItem(item: unknown): item is CrossCuttingItem {
+    return reflection.isInstance(item, CrossCuttingItem.$type);
+}
+
+export interface DecisionRow extends langium.AstNode {
+    readonly $container: DecisionTable;
+    readonly $type: 'DecisionRow';
+    action: string;
+    condition: string;
+    note?: string;
+}
+
+export const DecisionRow = {
+    $type: 'DecisionRow',
+    action: 'action',
+    condition: 'condition',
+    note: 'note'
+} as const;
+
+export function isDecisionRow(item: unknown): item is DecisionRow {
+    return reflection.isInstance(item, DecisionRow.$type);
+}
+
+export interface DecisionTable extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'DecisionTable';
+    checks: Array<StaticCheckDecl>;
+    input: string;
+    name: string;
+    output: string;
+    rows: Array<DecisionRow>;
+}
+
+export const DecisionTable = {
+    $type: 'DecisionTable',
+    checks: 'checks',
+    input: 'input',
+    name: 'name',
+    output: 'output',
+    rows: 'rows'
+} as const;
+
+export function isDecisionTable(item: unknown): item is DecisionTable {
+    return reflection.isInstance(item, DecisionTable.$type);
+}
+
+export interface DependencyBlock extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'DependencyBlock';
+    entries: Array<DependencyEntry>;
+}
+
+export const DependencyBlock = {
+    $type: 'DependencyBlock',
+    entries: 'entries'
+} as const;
+
+export function isDependencyBlock(item: unknown): item is DependencyBlock {
+    return reflection.isInstance(item, DependencyBlock.$type);
+}
+
+export interface DependencyEntry extends langium.AstNode {
+    readonly $container: DependencyBlock;
+    readonly $type: 'DependencyEntry';
+    name: string;
+    spec: string;
+}
+
+export const DependencyEntry = {
+    $type: 'DependencyEntry',
+    name: 'name',
+    spec: 'spec'
+} as const;
+
+export function isDependencyEntry(item: unknown): item is DependencyEntry {
+    return reflection.isInstance(item, DependencyEntry.$type);
+}
+
+export interface EventDecl extends langium.AstNode {
+    readonly $container: CommandDecl | PolicyStep;
+    readonly $type: 'EventDecl';
+    name: string;
+    params: Array<string>;
+}
+
+export const EventDecl = {
+    $type: 'EventDecl',
+    name: 'name',
+    params: 'params'
+} as const;
+
+export function isEventDecl(item: unknown): item is EventDecl {
+    return reflection.isInstance(item, EventDecl.$type);
+}
+
+export interface Flow extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'Flow';
+    name: string;
+    statements: Array<FlowStatement>;
+}
+
+export const Flow = {
+    $type: 'Flow',
+    name: 'name',
+    statements: 'statements'
+} as const;
+
+export function isFlow(item: unknown): item is Flow {
+    return reflection.isInstance(item, Flow.$type);
+}
+
+export type FlowStatement = ChainLimitDecl | CommandDecl | PolicyDecl | StaticCheckDecl;
+
+export const FlowStatement = {
+    $type: 'FlowStatement'
+} as const;
+
+export function isFlowStatement(item: unknown): item is FlowStatement {
+    return reflection.isInstance(item, FlowStatement.$type);
+}
+
+export interface Forbidden extends langium.AstNode {
+    readonly $container: Aggregate;
+    readonly $type: 'Forbidden';
+    from: langium.Reference<State>;
+    to: langium.Reference<State>;
+}
+
+export const Forbidden = {
+    $type: 'Forbidden',
+    from: 'from',
+    to: 'to'
+} as const;
+
+export function isForbidden(item: unknown): item is Forbidden {
+    return reflection.isInstance(item, Forbidden.$type);
+}
+
+export interface Glossary extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'Glossary';
+    name: string;
+    terms: Array<GlossaryTerm>;
+}
+
+export const Glossary = {
+    $type: 'Glossary',
+    name: 'name',
+    terms: 'terms'
+} as const;
+
+export function isGlossary(item: unknown): item is Glossary {
+    return reflection.isInstance(item, Glossary.$type);
+}
+
+export interface GlossaryTerm extends langium.AstNode {
+    readonly $container: Glossary;
+    readonly $type: 'GlossaryTerm';
+    kind: string;
+    name: string;
+    rest?: string;
+}
+
+export const GlossaryTerm = {
+    $type: 'GlossaryTerm',
+    kind: 'kind',
+    name: 'name',
+    rest: 'rest'
+} as const;
+
+export function isGlossaryTerm(item: unknown): item is GlossaryTerm {
+    return reflection.isInstance(item, GlossaryTerm.$type);
+}
+
+export interface GuardSpec extends langium.AstNode {
+    readonly $container: Transition;
+    readonly $type: 'GuardSpec';
+    kind: '契機' | '条件';
+    text: string;
+}
+
+export const GuardSpec = {
+    $type: 'GuardSpec',
+    kind: 'kind',
+    text: 'text'
+} as const;
+
+export function isGuardSpec(item: unknown): item is GuardSpec {
+    return reflection.isInstance(item, GuardSpec.$type);
+}
+
+export interface InvariantBlock extends langium.AstNode {
+    readonly $container: Aggregate;
+    readonly $type: 'InvariantBlock';
+    entries: Array<InvariantEntry>;
+}
+
+export const InvariantBlock = {
+    $type: 'InvariantBlock',
+    entries: 'entries'
+} as const;
+
+export function isInvariantBlock(item: unknown): item is InvariantBlock {
+    return reflection.isInstance(item, InvariantBlock.$type);
+}
+
+export interface InvariantEntry extends langium.AstNode {
+    readonly $container: InvariantBlock;
+    readonly $type: 'InvariantEntry';
+    text: string;
+}
+
+export const InvariantEntry = {
+    $type: 'InvariantEntry',
+    text: 'text'
+} as const;
+
+export function isInvariantEntry(item: unknown): item is InvariantEntry {
+    return reflection.isInstance(item, InvariantEntry.$type);
+}
 
 export interface Model extends langium.AstNode {
     readonly $type: 'Model';
@@ -34,7 +419,7 @@ export function isModel(item: unknown): item is Model {
     return reflection.isInstance(item, Model.$type);
 }
 
-export type ModelElement = Placeholder | StateKeywordSpike;
+export type ModelElement = Aggregate | ContextMap | DecisionTable | DependencyBlock | Flow | Glossary | PropertyBlock;
 
 export const ModelElement = {
     $type: 'ModelElement'
@@ -44,45 +429,495 @@ export function isModelElement(item: unknown): item is ModelElement {
     return reflection.isInstance(item, ModelElement.$type);
 }
 
-export interface Placeholder extends langium.AstNode {
+export interface PolicyDecl extends langium.AstNode {
+    readonly $container: Flow;
+    readonly $type: 'PolicyDecl';
+    steps: Array<PolicyStep>;
+    trigger: string;
+}
+
+export const PolicyDecl = {
+    $type: 'PolicyDecl',
+    steps: 'steps',
+    trigger: 'trigger'
+} as const;
+
+export function isPolicyDecl(item: unknown): item is PolicyDecl {
+    return reflection.isInstance(item, PolicyDecl.$type);
+}
+
+export interface PolicyStep extends langium.AstNode {
+    readonly $container: PolicyDecl;
+    readonly $type: 'PolicyStep';
+    command?: string;
+    event?: EventDecl;
+    note?: string;
+    table?: langium.Reference<DecisionTable>;
+}
+
+export const PolicyStep = {
+    $type: 'PolicyStep',
+    command: 'command',
+    event: 'event',
+    note: 'note',
+    table: 'table'
+} as const;
+
+export function isPolicyStep(item: unknown): item is PolicyStep {
+    return reflection.isInstance(item, PolicyStep.$type);
+}
+
+export interface PropertyBlock extends langium.AstNode {
     readonly $container: Model;
-    readonly $type: 'Placeholder';
+    readonly $type: 'PropertyBlock';
+    properties: Array<PropertyEntry>;
+}
+
+export const PropertyBlock = {
+    $type: 'PropertyBlock',
+    properties: 'properties'
+} as const;
+
+export function isPropertyBlock(item: unknown): item is PropertyBlock {
+    return reflection.isInstance(item, PropertyBlock.$type);
+}
+
+export interface PropertyEntry extends langium.AstNode {
+    readonly $container: PropertyBlock;
+    readonly $type: 'PropertyEntry';
+    body: string;
     name: string;
 }
 
-export const Placeholder = {
-    $type: 'Placeholder',
+export const PropertyEntry = {
+    $type: 'PropertyEntry',
+    body: 'body',
     name: 'name'
 } as const;
 
-export function isPlaceholder(item: unknown): item is Placeholder {
-    return reflection.isInstance(item, Placeholder.$type);
+export function isPropertyEntry(item: unknown): item is PropertyEntry {
+    return reflection.isInstance(item, PropertyEntry.$type);
 }
 
-export interface StateKeywordSpike extends langium.AstNode {
-    readonly $container: Model;
-    readonly $type: 'StateKeywordSpike';
+export interface RelationDecl extends langium.AstNode {
+    readonly $container: ContextMap;
+    readonly $type: 'RelationDecl';
+    from: langium.Reference<ContextDecl>;
+    note?: string;
+    to: langium.Reference<ContextDecl>;
+}
+
+export const RelationDecl = {
+    $type: 'RelationDecl',
+    from: 'from',
+    note: 'note',
+    to: 'to'
+} as const;
+
+export function isRelationDecl(item: unknown): item is RelationDecl {
+    return reflection.isInstance(item, RelationDecl.$type);
+}
+
+export interface State extends langium.AstNode {
+    readonly $container: Aggregate;
+    readonly $type: 'State';
     name: string;
 }
 
-export const StateKeywordSpike = {
-    $type: 'StateKeywordSpike',
+export const State = {
+    $type: 'State',
     name: 'name'
 } as const;
 
-export function isStateKeywordSpike(item: unknown): item is StateKeywordSpike {
-    return reflection.isInstance(item, StateKeywordSpike.$type);
+export function isState(item: unknown): item is State {
+    return reflection.isInstance(item, State.$type);
+}
+
+export interface StaticCheckDecl extends langium.AstNode {
+    readonly $container: DecisionTable | Flow;
+    readonly $type: 'StaticCheckDecl';
+    text: string;
+}
+
+export const StaticCheckDecl = {
+    $type: 'StaticCheckDecl',
+    text: 'text'
+} as const;
+
+export function isStaticCheckDecl(item: unknown): item is StaticCheckDecl {
+    return reflection.isInstance(item, StaticCheckDecl.$type);
+}
+
+export interface Transition extends langium.AstNode {
+    readonly $container: Aggregate;
+    readonly $type: 'Transition';
+    from: langium.Reference<State>;
+    guard: GuardSpec;
+    to: langium.Reference<State>;
+}
+
+export const Transition = {
+    $type: 'Transition',
+    from: 'from',
+    guard: 'guard',
+    to: 'to'
+} as const;
+
+export function isTransition(item: unknown): item is Transition {
+    return reflection.isInstance(item, Transition.$type);
+}
+
+export interface VariableBlock extends langium.AstNode {
+    readonly $container: Aggregate;
+    readonly $type: 'VariableBlock';
+    entries: Array<VariableEntry>;
+}
+
+export const VariableBlock = {
+    $type: 'VariableBlock',
+    entries: 'entries'
+} as const;
+
+export function isVariableBlock(item: unknown): item is VariableBlock {
+    return reflection.isInstance(item, VariableBlock.$type);
+}
+
+export interface VariableEntry extends langium.AstNode {
+    readonly $container: VariableBlock;
+    readonly $type: 'VariableEntry';
+    name: string;
+    type: string;
+}
+
+export const VariableEntry = {
+    $type: 'VariableEntry',
+    name: 'name',
+    type: 'type'
+} as const;
+
+export function isVariableEntry(item: unknown): item is VariableEntry {
+    return reflection.isInstance(item, VariableEntry.$type);
 }
 
 export type AshuraAstType = {
+    Aggregate: Aggregate
+    AggregateMember: AggregateMember
+    ChainLimitDecl: ChainLimitDecl
+    CommandDecl: CommandDecl
+    ContextDecl: ContextDecl
+    ContextMap: ContextMap
+    CrossCuttingBlock: CrossCuttingBlock
+    CrossCuttingItem: CrossCuttingItem
+    DecisionRow: DecisionRow
+    DecisionTable: DecisionTable
+    DependencyBlock: DependencyBlock
+    DependencyEntry: DependencyEntry
+    EventDecl: EventDecl
+    Flow: Flow
+    FlowStatement: FlowStatement
+    Forbidden: Forbidden
+    Glossary: Glossary
+    GlossaryTerm: GlossaryTerm
+    GuardSpec: GuardSpec
+    InvariantBlock: InvariantBlock
+    InvariantEntry: InvariantEntry
     Model: Model
     ModelElement: ModelElement
-    Placeholder: Placeholder
-    StateKeywordSpike: StateKeywordSpike
+    PolicyDecl: PolicyDecl
+    PolicyStep: PolicyStep
+    PropertyBlock: PropertyBlock
+    PropertyEntry: PropertyEntry
+    RelationDecl: RelationDecl
+    State: State
+    StaticCheckDecl: StaticCheckDecl
+    Transition: Transition
+    VariableBlock: VariableBlock
+    VariableEntry: VariableEntry
 }
 
 export class AshuraAstReflection extends langium.AbstractAstReflection {
     override readonly types = {
+        Aggregate: {
+            name: Aggregate.$type,
+            properties: {
+                members: {
+                    name: Aggregate.members,
+                    defaultValue: [],
+                    optional: true
+                },
+                name: {
+                    name: Aggregate.name
+                },
+                states: {
+                    name: Aggregate.states,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        AggregateMember: {
+            name: AggregateMember.$type,
+            properties: {
+            },
+            superTypes: []
+        },
+        ChainLimitDecl: {
+            name: ChainLimitDecl.$type,
+            properties: {
+                value: {
+                    name: ChainLimitDecl.value
+                }
+            },
+            superTypes: [FlowStatement.$type]
+        },
+        CommandDecl: {
+            name: CommandDecl.$type,
+            properties: {
+                actor: {
+                    name: CommandDecl.actor,
+                    optional: true
+                },
+                event: {
+                    name: CommandDecl.event,
+                    optional: true
+                },
+                name: {
+                    name: CommandDecl.name
+                }
+            },
+            superTypes: [FlowStatement.$type]
+        },
+        ContextDecl: {
+            name: ContextDecl.$type,
+            properties: {
+                description: {
+                    name: ContextDecl.description,
+                    optional: true
+                },
+                name: {
+                    name: ContextDecl.name
+                }
+            },
+            superTypes: []
+        },
+        ContextMap: {
+            name: ContextMap.$type,
+            properties: {
+                contexts: {
+                    name: ContextMap.contexts,
+                    defaultValue: [],
+                    optional: true
+                },
+                crossCutting: {
+                    name: ContextMap.crossCutting,
+                    optional: true
+                },
+                relations: {
+                    name: ContextMap.relations,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        CrossCuttingBlock: {
+            name: CrossCuttingBlock.$type,
+            properties: {
+                items: {
+                    name: CrossCuttingBlock.items,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        CrossCuttingItem: {
+            name: CrossCuttingItem.$type,
+            properties: {
+                body: {
+                    name: CrossCuttingItem.body
+                },
+                name: {
+                    name: CrossCuttingItem.name
+                }
+            },
+            superTypes: []
+        },
+        DecisionRow: {
+            name: DecisionRow.$type,
+            properties: {
+                action: {
+                    name: DecisionRow.action
+                },
+                condition: {
+                    name: DecisionRow.condition
+                },
+                note: {
+                    name: DecisionRow.note,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        DecisionTable: {
+            name: DecisionTable.$type,
+            properties: {
+                checks: {
+                    name: DecisionTable.checks,
+                    defaultValue: [],
+                    optional: true
+                },
+                input: {
+                    name: DecisionTable.input
+                },
+                name: {
+                    name: DecisionTable.name
+                },
+                output: {
+                    name: DecisionTable.output
+                },
+                rows: {
+                    name: DecisionTable.rows,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        DependencyBlock: {
+            name: DependencyBlock.$type,
+            properties: {
+                entries: {
+                    name: DependencyBlock.entries,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        DependencyEntry: {
+            name: DependencyEntry.$type,
+            properties: {
+                name: {
+                    name: DependencyEntry.name
+                },
+                spec: {
+                    name: DependencyEntry.spec
+                }
+            },
+            superTypes: []
+        },
+        EventDecl: {
+            name: EventDecl.$type,
+            properties: {
+                name: {
+                    name: EventDecl.name
+                },
+                params: {
+                    name: EventDecl.params,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        Flow: {
+            name: Flow.$type,
+            properties: {
+                name: {
+                    name: Flow.name
+                },
+                statements: {
+                    name: Flow.statements,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        FlowStatement: {
+            name: FlowStatement.$type,
+            properties: {
+            },
+            superTypes: []
+        },
+        Forbidden: {
+            name: Forbidden.$type,
+            properties: {
+                from: {
+                    name: Forbidden.from,
+                    referenceType: State.$type
+                },
+                to: {
+                    name: Forbidden.to,
+                    referenceType: State.$type
+                }
+            },
+            superTypes: [AggregateMember.$type]
+        },
+        Glossary: {
+            name: Glossary.$type,
+            properties: {
+                name: {
+                    name: Glossary.name
+                },
+                terms: {
+                    name: Glossary.terms,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        GlossaryTerm: {
+            name: GlossaryTerm.$type,
+            properties: {
+                kind: {
+                    name: GlossaryTerm.kind
+                },
+                name: {
+                    name: GlossaryTerm.name
+                },
+                rest: {
+                    name: GlossaryTerm.rest,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        GuardSpec: {
+            name: GuardSpec.$type,
+            properties: {
+                kind: {
+                    name: GuardSpec.kind
+                },
+                text: {
+                    name: GuardSpec.text
+                }
+            },
+            superTypes: []
+        },
+        InvariantBlock: {
+            name: InvariantBlock.$type,
+            properties: {
+                entries: {
+                    name: InvariantBlock.entries,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [AggregateMember.$type]
+        },
+        InvariantEntry: {
+            name: InvariantEntry.$type,
+            properties: {
+                text: {
+                    name: InvariantEntry.text
+                }
+            },
+            superTypes: []
+        },
         Model: {
             name: Model.$type,
             properties: {
@@ -100,23 +935,140 @@ export class AshuraAstReflection extends langium.AbstractAstReflection {
             },
             superTypes: []
         },
-        Placeholder: {
-            name: Placeholder.$type,
+        PolicyDecl: {
+            name: PolicyDecl.$type,
             properties: {
-                name: {
-                    name: Placeholder.name
+                steps: {
+                    name: PolicyDecl.steps,
+                    defaultValue: []
+                },
+                trigger: {
+                    name: PolicyDecl.trigger
+                }
+            },
+            superTypes: [FlowStatement.$type]
+        },
+        PolicyStep: {
+            name: PolicyStep.$type,
+            properties: {
+                command: {
+                    name: PolicyStep.command,
+                    optional: true
+                },
+                event: {
+                    name: PolicyStep.event,
+                    optional: true
+                },
+                note: {
+                    name: PolicyStep.note,
+                    optional: true
+                },
+                table: {
+                    name: PolicyStep.table,
+                    referenceType: DecisionTable.$type,
+                    optional: true
+                }
+            },
+            superTypes: []
+        },
+        PropertyBlock: {
+            name: PropertyBlock.$type,
+            properties: {
+                properties: {
+                    name: PropertyBlock.properties,
+                    defaultValue: [],
+                    optional: true
                 }
             },
             superTypes: [ModelElement.$type]
         },
-        StateKeywordSpike: {
-            name: StateKeywordSpike.$type,
+        PropertyEntry: {
+            name: PropertyEntry.$type,
             properties: {
+                body: {
+                    name: PropertyEntry.body
+                },
                 name: {
-                    name: StateKeywordSpike.name
+                    name: PropertyEntry.name
                 }
             },
-            superTypes: [ModelElement.$type]
+            superTypes: []
+        },
+        RelationDecl: {
+            name: RelationDecl.$type,
+            properties: {
+                from: {
+                    name: RelationDecl.from,
+                    referenceType: ContextDecl.$type
+                },
+                note: {
+                    name: RelationDecl.note,
+                    optional: true
+                },
+                to: {
+                    name: RelationDecl.to,
+                    referenceType: ContextDecl.$type
+                }
+            },
+            superTypes: []
+        },
+        State: {
+            name: State.$type,
+            properties: {
+                name: {
+                    name: State.name
+                }
+            },
+            superTypes: []
+        },
+        StaticCheckDecl: {
+            name: StaticCheckDecl.$type,
+            properties: {
+                text: {
+                    name: StaticCheckDecl.text
+                }
+            },
+            superTypes: [FlowStatement.$type]
+        },
+        Transition: {
+            name: Transition.$type,
+            properties: {
+                from: {
+                    name: Transition.from,
+                    referenceType: State.$type
+                },
+                guard: {
+                    name: Transition.guard
+                },
+                to: {
+                    name: Transition.to,
+                    referenceType: State.$type
+                }
+            },
+            superTypes: [AggregateMember.$type]
+        },
+        VariableBlock: {
+            name: VariableBlock.$type,
+            properties: {
+                entries: {
+                    name: VariableBlock.entries,
+                    defaultValue: [],
+                    optional: true
+                }
+            },
+            superTypes: [AggregateMember.$type]
+        },
+        VariableEntry: {
+            name: VariableEntry.$type,
+            properties: {
+                name: {
+                    name: VariableEntry.name
+                },
+                type: {
+                    name: VariableEntry.type
+                }
+            },
+            superTypes: []
         }
     } as const satisfies langium.AstMetaData
 }

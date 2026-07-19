@@ -47,7 +47,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 ## Phase B: コア文法とサンプル
 
 - [x] B-1. 日本語ID終端のトークナイズ検証(1行フィクスチャ)
-- [ ] B-2. コア文法定義(コンテキストマップ/用語集/集約/フロー/決定表/性質/依存) → [詳細](docs/briefs/step-B-2-grammar.md)
+- [x] B-2. コア文法定義(コンテキストマップ/用語集/集約/フロー/決定表/性質/依存) → [詳細](docs/briefs/step-B-2-grammar.md)
 - [ ] B-3. `sugoroku.ashura` 作成とパース確認(正典サンプルとして内部整合) → [詳細](docs/briefs/step-B-3-sugoroku.md)
 
 ## Phase C: LSP検査3種 [REVIEW]
@@ -66,6 +66,8 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 - 正典 `sugoroku.ashura` は内部整合させたサンプルとし、検査3が拾うべき壊れたケース(存在しないイベントへの契機参照)は別の負フィクスチャ側に用意する
 - 完了判定は「パースできる」だけでは不十分。検査ごとに正常系・異常系のテストがあることを Phase 0 の受け入れ条件とする
 - テストフレームワークは vitest を採用
+- B-2で判明: 裸の(引用符なし)自由文字列終端(`FREE_TEXT`)はChevrotainのlongest-match戦略下でキーワード終端と全域で競合し、文書冒頭の `用語集` キーワードすら誤トークナイズさせた。自由文字列は必ず引用符付き `STRING` にする方針に統一(`GuardSpec.text`・`VariableEntry.type`・`InvariantEntry.text`・`PropertyEntry.body`・`DependencyEntry.spec`・`GlossaryTerm.rest` など)。B-3でsugoroku.ashuraを翻訳する際は全ての自由文字列を `"..."` で囲むこと
+- `DecisionRow` の `note` と `PolicyStep` の `note` は括弧なしの裸の `STRING`(`行 "cond" -> "action" "note"` の形)。丸括弧で囲まない
 
 ## 完了済みフェーズ
 
