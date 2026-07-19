@@ -1,5 +1,6 @@
 import { AstUtils, type ValidationAcceptor, type ValidationChecks } from 'langium';
 import {
+  isFlow,
   isGlossary,
   isModel,
   isTransition,
@@ -7,6 +8,7 @@ import {
   type AshuraAstType,
   type EventDecl,
   type Model,
+  type Transition,
   type VariableEntry,
 } from './generated/ast.js';
 
@@ -18,6 +20,7 @@ export function registerValidationChecks(registry: {
     EventDecl: validator.checkEventParamsInGlossary,
     VariableEntry: validator.checkVariableNameInGlossary,
     Aggregate: validator.checkStateMachineCoverage,
+    Transition: validator.checkTriggerReferencesExistingEvent,
   };
   registry.register(checks, validator);
 }
@@ -32,6 +35,27 @@ function collectGlossaryTerms(model: Model): Set<string> {
     }
   }
   return terms;
+}
+
+function collectEventNames(model: Model): Set<string> {
+  const names = new Set<string>();
+  for (const element of model.elements) {
+    if (isFlow(element)) {
+      for (const statement of element.statements) {
+        if (statement.$type === 'CommandDecl' && statement.event) {
+          names.add(statement.event.name);
+        }
+        if (statement.$type === 'PolicyDecl') {
+          for (const step of statement.steps) {
+            if (step.event) {
+              names.add(step.event.name);
+            }
+          }
+        }
+      }
+    }
+  }
+  return names;
 }
 
 export class AshuraValidator {
@@ -109,5 +133,20 @@ export class AshuraValidator {
         accept('warning', `到達不能な状態です: ${state.name}`, { node, property: 'states', index });
       }
     });
+  }
+
+  checkTriggerReferencesExistingEvent(node: Transition, accept: ValidationAcceptor): void {
+    if (node.guard.kind !== '契機') {
+      return;
+    }
+    const model = AstUtils.getContainerOfType(node, isModel);
+    if (!model) {
+      return;
+    }
+    const eventNames = collectEventNames(model);
+    const triggerName = node.guard.text.trim().split(/\s+/)[0];
+    if (triggerName && !eventNames.has(triggerName)) {
+      accept('error', `存在しないイベントへの契機参照です: ${triggerName}`, { node, property: 'guard' });
+    }
   }
 }
