@@ -1,0 +1,21 @@
+{
+  "name": "ashura-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "scripts": {
+    "langium:generate": "langium generate",
+    "build": "npm run langium:generate && tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "langium": "~4.3.1"
+  },
+  "devDependencies": {
+    "langium-cli": "~4.3.0",
+    "typescript": "~7.0.2",
+    "vitest": "~4.1.10"
+  }
+}

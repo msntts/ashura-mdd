@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+lib/
+coverage/
+**/src/language/generated/
+**/syntaxes/
+pnpm-lock.yaml

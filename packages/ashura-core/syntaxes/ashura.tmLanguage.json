@@ -1,0 +1,32 @@
+{
+  "name": "ashura",
+  "scopeName": "source.ashura",
+  "fileTypes": [
+    ".ashura"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.ashura",
+      "match": "\\b(placeholder)\\b"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "begin": "#",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.ashura"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.ashura"
+        }
+      ]
+    }
+  }
+}

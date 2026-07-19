@@ -1,0 +1,12 @@
+{
+  "name": "ashura-mdd",
+  "private": true,
+  "packageManager": "pnpm@11.0.8",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "~3.9.5"
+  }
+}
