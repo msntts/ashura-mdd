@@ -1,0 +1,16 @@
+{
+  "name": "ashura-surveyor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~7.0.2",
+    "vitest": "~4.1.10"
+  }
+}

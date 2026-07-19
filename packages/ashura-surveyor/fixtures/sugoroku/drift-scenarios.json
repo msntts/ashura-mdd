@@ -1,0 +1,47 @@
+[
+  {
+    "label": "健全: 遷移の契機が三者一致",
+    "declaration": { "scope": "ゲーム", "kind": "遷移", "name": "進行中->終了" },
+    "intent": "契機はゴール到達イベント",
+    "implementationInference": "契機はゴール到達イベント",
+    "independentDerivation": "契機はゴール到達イベント",
+    "expectedDiagnosis": "健全",
+    "expectedDestination": "記録のみ"
+  },
+  {
+    "label": "実装の逸脱: 実装だけタイムアウト契機になっている",
+    "declaration": { "scope": "ゲーム", "kind": "遷移", "name": "進行中->終了" },
+    "intent": "契機はゴール到達イベント",
+    "implementationInference": "契機は10ターン経過タイムアウト",
+    "independentDerivation": "契機はゴール到達イベント",
+    "expectedDiagnosis": "実装の逸脱",
+    "expectedDestination": "生成へ差し戻し(自動)"
+  },
+  {
+    "label": "仕様が曖昧: 意図と実装は一致するが独立解釈だけ割れる",
+    "declaration": { "scope": "手番進行", "kind": "性質", "name": "停止性" },
+    "intent": "任意の出目系列に対し有限手数で終了に到達する",
+    "implementationInference": "任意の出目系列に対し有限手数で終了に到達する",
+    "independentDerivation": "連鎖上限3を超える出目系列では終了しない可能性がある",
+    "expectedDiagnosis": "仕様が曖昧(別解釈可能)",
+    "expectedDestination": "人間裁定"
+  },
+  {
+    "label": "モデルが現実と乖離: 実装と独立解釈は一致するが意図と食い違う",
+    "declaration": { "scope": "ゲーム", "kind": "遷移", "name": "進行中->終了" },
+    "intent": "契機はゴール到達イベント",
+    "implementationInference": "契機はゴール到達または規定ターン数超過",
+    "independentDerivation": "契機はゴール到達または規定ターン数超過",
+    "expectedDiagnosis": "モデルが現実と乖離",
+    "expectedDestination": "人間裁定"
+  },
+  {
+    "label": "三者バラバラ: 意図・実装・独立解釈がすべて食い違う",
+    "declaration": { "scope": "手番進行", "kind": "性質", "name": "公平性" },
+    "intent": "手番交代はプレイヤー列の巡回順に一致する",
+    "implementationInference": "手番交代は得点降順に一致する",
+    "independentDerivation": "手番交代はランダムに決定される",
+    "expectedDiagnosis": "三者バラバラ",
+    "expectedDestination": "人間裁定(最優先)"
+  }
+]

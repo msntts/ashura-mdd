@@ -1,16 +1,18 @@
-# Ashura MDD Phase 0 - Implementation Plan
+# Ashura MDD Implementation Plan
 
-## プロジェクト概要
+## Phase 0 - Implementation Plan (完了)
+
+### プロジェクト概要
 
 Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`examples/sugoroku-model.md` を翻訳した正典サンプルに対して LSP検査3種(語彙整合・状態機械網羅性・フロー⇄集約参照整合)を実装する。ROADMAP.md の Phase 0 残タスクに対応。
 
-## 環境
+### 環境
 
 - Windows / Node.js / TypeScript / pnpm(ワークスペース化する)
 - Langium(DSL+LSP、Chevrotainベース)
 - vitest(パーサ・validatorのテスト)
 
-## 操作仕様
+### 操作仕様
 
 - `packages/ashura-core` に Langium プロジェクトを立てる(ルートを pnpm workspace化)
 - 日本語識別子(用語集エントリ名・状態名など)をトークナイズできる ID 終端に置き換える(Unicode範囲、平仮名・片仮名・漢字)
@@ -21,26 +23,58 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 - `examples/sugoroku-model.md` を `packages/ashura-core/examples/sugoroku.ashura` として翻訳する。**正典サンプルは内部整合させる**(集約の遷移 `進行中 -> 終了 [契機: ゴール到達]` に対応するイベントをフロー側に追加するなど、原文の暗黙の対応を明示化する)
 - 検査3種それぞれについて、正しく倒れる**負のフィクスチャ**(未定義遷移・用語集にない名詞・存在しないイベント参照)を用意し、期待通りに diagnostics が出ることを確認する
 
-## 受け入れ条件
+### 受け入れ条件
 
 - `packages/ashura-core` が pnpm workspace 配下で build/test 通る
 - 正典 `sugoroku.ashura` がエラーなくパースされ、かつ検査3種すべてで診断ゼロ
 - 検査3種それぞれに正常系(検出されない)・異常系(検出される)のテストが vitest で green
 
-## 完了条件
+### 完了条件
 
 - `pnpm -F ashura-core build`
 - `pnpm -F ashura-core test`
+
+全タスク完了。ROADMAP.md の Phase 0 残タスク(コアDSL文法定義・LSP検査3種)を実装済み。
+
+## Phase 1 - Implementation Plan (サーベイヤー: 三点測量の最小構成)
+
+### プロジェクト概要
+
+新規パッケージ `packages/ashura-surveyor` に、三点測量(①意図・②実装・③解釈)の最小構成を実装する。ROADMAP.md の Phase 1 の4項目(トレース表フォーマット・drift検出・差分診断決定表・乖離ライフサイクル)に対応する。
+
+### スコープ決定(ユーザー承認済み)
+
+②実装からの推論の対象となる実装コードは、まだこのリポジトリに存在しない(コード生成は Phase 3)。よって Phase 1 の drift 検出は **フィクスチャ駆動** とする。`sugoroku.ashura`(①意図)に対し、②実装からの推論・③AI独立導出はどちらも手書きのフィクスチャ(JSON)として用意し、実LLM配線は行わない。パイプライン全体(トレース表→drift検出→差分診断→乖離ライフサイクル)を決定的に回せることを最小構成のゴールとする。実LLM配線・実プロジェクト対応は Phase 1 のスコープ外(将来フェーズ送り)。
+
+### 決定性境界の隔離設計
+
+`domain/ashura.model.md` の横断制約「決定性境界: LSP検査は決定的。エージェント推論は非決定的。両者の担当を混ぜない」を踏襲する。決定表(diagnose関数)・乖離ライフサイクル(状態機械)は純粋関数として決定的に実装する。②実装からの推論・③AI独立導出という非決定的(LLM)要素は型(インターフェース)の裏に隔離し、Phase 1ではその型を満たすフィクスチャ値で代替する。将来LLM実装を差し込んでも決定的コア(決定表・状態機械)には手を入れない設計とする。
+
+### 操作仕様
+
+- `packages/ashura-surveyor` を pnpm workspace 配下に立てる(`ashura-core` と同じ tsconfig/vitest 構成を踏襲)
+- **トレース表フォーマット**: モデル宣言(遷移・不変条件・性質・依存/失敗セマンティクス等)を一意に識別する `declarationId` と、コード上の対応位置(`file` / `line` / `symbol`)の配列を持つ型を定義する。対応位置が0件の宣言を検出する完全性チェック関数も併せて定義する(`生成` 文脈の不変条件「トレース表の完全性」に対応)
+- **差分診断の決定表**: `domain/ashura.model.md` 104-110行の表を `diagnose(input: DiagnosisInput): DiagnosisResult` として実装する。①vs②・①vs③・②vs③の3つの一致/乖離のうち、一致関係の推移律を満たす組合せは8通り中5通り(表が網羅する5パターン)のみ。残り3通り(ちょうど1つだけ乖離)は論理的にありえないはずだが、LLM由来の判定(②③)は推移性を保証しないため入力されうる。この3パターンはサイレントスルーさせず、専用の異常系診断(`入力不整合`)として明示的に返す
+- **乖離ライフサイクル**: `domain/ashura.model.md` 116-121行の状態機械(検出→裁定待ち→解消、裁定待ちが7日超過でエスカレーション通知、検出→解消の直接遷移は禁止)を実装する
+- **drift検出パイプライン**: `sugoroku.ashura` の宣言に対応する①②③のフィクスチャ(JSON、正常系・異常系複数パターン)を用意し、比較→決定表→(必要なら)乖離ライフサイクルへの投入までを一気通貫でテストする
+
+### 受け入れ条件
+
+- `packages/ashura-surveyor` が pnpm workspace 配下で build/test 通る
+- 差分診断の決定表に正常系5パターン+異常系(入力不整合)3パターンのテストが vitest で green
+- 乖離ライフサイクルの正常系(検出→裁定待ち→解消)・異常系(検出→解消の直接遷移禁止・7日超過エスカレーション)のテストが vitest で green
+- フィクスチャ駆動のdrift検出パイプラインが、①②③の一致/乖離パターンごとに期待した診断+宛先を返すことをテストで確認する
+
+### 完了条件
+
+- `pnpm -F ashura-surveyor build`
+- `pnpm -F ashura-surveyor test`
 
 ---
 
 ## 🔥 Hotfix(最優先)
 
 <!-- 動作確認中の不具合・緊急対応はここに積む -->
-
----
-
-全タスク完了。ROADMAP.md の Phase 0 残タスク(コアDSL文法定義・LSP検査3種)を実装済み。
 
 ---
 

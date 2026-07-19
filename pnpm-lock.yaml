@@ -28,6 +28,15 @@ importers:
         specifier: ~4.1.10
         version: 4.1.10(vite@8.1.5)
 
+  packages/ashura-surveyor:
+    devDependencies:
+      typescript:
+        specifier: ~7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ~4.1.10
+        version: 4.1.10(vite@8.1.5)
+
 packages:
 
   '@chevrotain/cst-dts-gen@12.0.0':
