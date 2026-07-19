@@ -40,21 +40,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 
 ---
 
-## Phase A: workspace + Langium scaffold
-
-- [x] A-1. ルートを pnpm workspace化し `packages/ashura-core` に Langium プロジェクトを立てる(空文法でbuild/test通過) → [詳細](docs/briefs/step-A-1-scaffold.md)
-
-## Phase B: コア文法とサンプル
-
-- [x] B-1. 日本語ID終端のトークナイズ検証(1行フィクスチャ)
-- [x] B-2. コア文法定義(コンテキストマップ/用語集/集約/フロー/決定表/性質/依存) → [詳細](docs/briefs/step-B-2-grammar.md)
-- [x] B-3. `sugoroku.ashura` 作成とパース確認(正典サンプルとして内部整合) → [詳細](docs/briefs/step-B-3-sugoroku.md)
-
-## Phase C: LSP検査3種 [REVIEW]
-
-- [x] C-1. 語彙整合検査(用語集にない名詞参照を警告)+ 正常/異常フィクスチャ + テスト → [詳細](docs/briefs/step-C-1-vocabulary.md)
-- [x] C-2. 状態機械網羅性検査(未定義遷移・到達不能状態)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-2-statemachine.md)
-- [x] C-3. フロー⇄集約参照整合検査(存在しないイベントへの契機参照をエラー)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-3-reference.md)
+全タスク完了。ROADMAP.md の Phase 0 残タスク(コアDSL文法定義・LSP検査3種)を実装済み。
 
 ---
 
@@ -76,4 +62,6 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 
 ## 完了済みフェーズ
 
-<!-- Phase {N}: {フェーズ名} `{開始ハッシュ}..{終了ハッシュ}` -->
+- Phase A: workspace + Langium scaffold `78d2f86..78d2f86`
+- Phase B: コア文法とサンプル `92d92a4..c28056c`
+- Phase C: LSP検査3種 `d13e439..49f0f5b`
