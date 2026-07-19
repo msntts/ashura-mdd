@@ -83,6 +83,8 @@ export class AshuraValidator {
     }
   }
 
+  // Phase 0の暫定実装: 状態宣言チェーンは分岐・合流のない直線的な列であることを前提にしている。
+  // 分岐する状態機械を扱う場合はこの前提から見直しが必要。
   checkStateMachineCoverage(node: Aggregate, accept: ValidationAcceptor): void {
     if (node.states.length === 0) {
       return;
@@ -144,6 +146,8 @@ export class AshuraValidator {
       return;
     }
     const eventNames = collectEventNames(model);
+    // 契機テキストは空白区切りの先頭トークンがイベント名である前提の簡易パース。
+    // GuardSpecは自由文字列(STRING)なのでDSL文法が変わるとここもサイレントに壊れうる。
     const triggerName = node.guard.text.trim().split(/\s+/)[0];
     if (triggerName && !eventNames.has(triggerName)) {
       accept('error', `存在しないイベントへの契機参照です: ${triggerName}`, { node, property: 'guard' });
