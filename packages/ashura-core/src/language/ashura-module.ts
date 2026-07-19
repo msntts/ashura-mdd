@@ -9,6 +9,7 @@ import {
   type PartialLangiumCoreServices,
 } from 'langium';
 import { AshuraGeneratedModule, AshuraGeneratedSharedModule } from './generated/module.js';
+import { registerValidationChecks } from './ashura-validator.js';
 
 export type AshuraAddedServices = Record<string, never>;
 
@@ -23,5 +24,6 @@ export function createAshuraServices(context: DefaultSharedCoreModuleContext): {
   const shared = inject(createDefaultSharedCoreModule(context), AshuraGeneratedSharedModule);
   const Ashura = inject(createDefaultCoreModule({ shared }), AshuraGeneratedModule, AshuraModule);
   shared.ServiceRegistry.register(Ashura);
+  registerValidationChecks(Ashura.validation.ValidationRegistry);
   return { shared, Ashura };
 }

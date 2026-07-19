@@ -13,7 +13,7 @@ describe('sugoroku.ashura (canonical example)', () => {
   test('parses without diagnostics', async () => {
     const services = createAshuraServices(EmptyFileSystem).Ashura;
     const parse = parseHelper<Model>(services);
-    const document = await parse(sugorokuSource, { documentUri: sugorokuPath });
+    const document = await parse(sugorokuSource, { documentUri: sugorokuPath, validation: true });
     expect(document.parseResult.lexerErrors).toHaveLength(0);
     expect(document.parseResult.parserErrors).toHaveLength(0);
     expect(document.diagnostics ?? []).toHaveLength(0);

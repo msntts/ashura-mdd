@@ -52,7 +52,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 
 ## Phase C: LSP検査3種 [REVIEW]
 
-- [ ] C-1. 語彙整合検査(用語集にない名詞参照を警告)+ 正常/異常フィクスチャ + テスト → [詳細](docs/briefs/step-C-1-vocabulary.md)
+- [x] C-1. 語彙整合検査(用語集にない名詞参照を警告)+ 正常/異常フィクスチャ + テスト → [詳細](docs/briefs/step-C-1-vocabulary.md)
 - [ ] C-2. 状態機械網羅性検査(未定義遷移・到達不能状態)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-2-statemachine.md)
 - [ ] C-3. フロー⇄集約参照整合検査(存在しないイベントへの契機参照をエラー)+ フィクスチャ + テスト → [詳細](docs/briefs/step-C-3-reference.md)
 
@@ -71,6 +71,8 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 - `DependencyEntry` は `依存 名前 (spec)` のように丸括弧で `STRING` を囲む(`DecisionRow`/`PolicyStep`のnoteとは違う形なので注意)
 - B-3で `sugoroku.ashura` を翻訳する際、原文の用語集にない変数名(`プレイヤー位置`・`連鎖深度`)をC-1(語彙整合検査)の正常系ゼロ件baselineに合わせるため用語集エントリとして追加した(原文の用語集は暗黙にユビキタス言語のみを列挙する設計だったが、翻訳先の正典サンプルでは全参照を用語集に載せる方針に統一)
 - 集約の遷移 `進行中 -> 終了 [契機: "ゴール到達"]` に対応するイベントとして、フロー `手番進行` の `ポリシー: 到着 のとき` に `-> イベント ゴール到達` を追加した(原文の暗黙対応を明示化。C-3の正常系baseline)
+- C-1で判明: `langium/test` の `parseHelper` はデフォルトでは validation フェーズを実行しない(lexing/parsing/linkingは常に走るが、カスタム `ValidationChecks` を動かすには `parse(source, { validation: true })` を明示する必要がある)。C-2・C-3のテストでも同様に指定すること
+- validatorは `packages/ashura-core/src/language/ashura-validator.ts` に集約し、`registerValidationChecks()` を `ashura-module.ts` の `createAshuraServices` 内で呼んで登録する方式。C-2・C-3もこのファイルにチェックメソッドを追記する
 
 ## 完了済みフェーズ
 
