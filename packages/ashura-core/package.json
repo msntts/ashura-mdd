@@ -7,7 +7,7 @@
   "types": "out/index.d.ts",
   "scripts": {
     "langium:generate": "langium generate",
-    "build": "npm run langium:generate && tsc -b",
+    "build": "pnpm run langium:generate && tsc -b",
     "test": "vitest run"
   },
   "dependencies": {
