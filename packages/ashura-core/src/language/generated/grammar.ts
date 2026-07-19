@@ -36,11 +36,23 @@ export const AshuraGrammar = (): Grammar => loadedAshuraGrammar ?? (loadedAshura
       "$type": "ParserRule",
       "name": "ModelElement",
       "definition": {
-        "$type": "RuleCall",
-        "rule": {
-          "$ref": "#/rules@2"
-        },
-        "arguments": []
+        "$type": "Alternatives",
+        "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@2"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@3"
+            },
+            "arguments": []
+          }
+        ]
       },
       "entry": false,
       "fragment": false,
@@ -63,7 +75,35 @@ export const AshuraGrammar = (): Grammar => loadedAshuraGrammar ?? (loadedAshura
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@3"
+                "$ref": "#/rules@4"
+              },
+              "arguments": []
+            }
+          }
+        ]
+      },
+      "entry": false,
+      "fragment": false,
+      "parameters": []
+    },
+    {
+      "$type": "ParserRule",
+      "name": "StateKeywordSpike",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "状態"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@4"
               },
               "arguments": []
             }
@@ -79,7 +119,7 @@ export const AshuraGrammar = (): Grammar => loadedAshuraGrammar ?? (loadedAshura
       "name": "ID",
       "definition": {
         "$type": "RegexToken",
-        "regex": "/[_a-zA-Z][\\\\w_]*/",
+        "regex": "/[_a-zA-Z぀-ヿ一-鿿][\\\\w぀-ヿ一-鿿]*/",
         "parenthesized": false
       },
       "fragment": false,

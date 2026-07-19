@@ -157,7 +157,7 @@
        name=ID '(' spec=FREE_TEXT ')';
 
    // --- 終端 ---
-   terminal ID: /* B-1 で確定した日本語対応の正規表現をここに転記 */;
+   terminal ID: /[_a-zA-Z぀-ヿ一-鿿][\w぀-ヿ一-鿿]*/;
    terminal STRING: /"[^"]*"|'[^']*'/;
    terminal NUMBER returns number: /-?[0-9]+/;
    terminal FREE_TEXT: /[^\n\r{}]+/;

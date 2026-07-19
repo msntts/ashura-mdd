@@ -7,7 +7,7 @@
 import * as langium from 'langium';
 
 export const AshuraTerminals = {
-    ID: /[_a-zA-Z][\w_]*/,
+    ID: /[_a-zA-Z぀-ヿ一-鿿][\w぀-ヿ一-鿿]*/,
     WS: /\s+/,
     COMMENT: /#[^\n\r]*/,
 };
@@ -15,7 +15,8 @@ export const AshuraTerminals = {
 export type AshuraTerminalNames = keyof typeof AshuraTerminals;
 
 export type AshuraKeywordNames =
-    | "placeholder";
+    | "placeholder"
+    | "状態";
 
 export type AshuraTokenNames = AshuraTerminalNames | AshuraKeywordNames;
 
@@ -33,7 +34,7 @@ export function isModel(item: unknown): item is Model {
     return reflection.isInstance(item, Model.$type);
 }
 
-export type ModelElement = Placeholder;
+export type ModelElement = Placeholder | StateKeywordSpike;
 
 export const ModelElement = {
     $type: 'ModelElement'
@@ -58,10 +59,26 @@ export function isPlaceholder(item: unknown): item is Placeholder {
     return reflection.isInstance(item, Placeholder.$type);
 }
 
+export interface StateKeywordSpike extends langium.AstNode {
+    readonly $container: Model;
+    readonly $type: 'StateKeywordSpike';
+    name: string;
+}
+
+export const StateKeywordSpike = {
+    $type: 'StateKeywordSpike',
+    name: 'name'
+} as const;
+
+export function isStateKeywordSpike(item: unknown): item is StateKeywordSpike {
+    return reflection.isInstance(item, StateKeywordSpike.$type);
+}
+
 export type AshuraAstType = {
     Model: Model
     ModelElement: ModelElement
     Placeholder: Placeholder
+    StateKeywordSpike: StateKeywordSpike
 }
 
 export class AshuraAstReflection extends langium.AbstractAstReflection {
@@ -88,6 +105,15 @@ export class AshuraAstReflection extends langium.AbstractAstReflection {
             properties: {
                 name: {
                     name: Placeholder.name
+                }
+            },
+            superTypes: [ModelElement.$type]
+        },
+        StateKeywordSpike: {
+            name: StateKeywordSpike.$type,
+            properties: {
+                name: {
+                    name: StateKeywordSpike.name
                 }
             },
             superTypes: [ModelElement.$type]

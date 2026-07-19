@@ -46,7 +46,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 
 ## Phase B: コア文法とサンプル
 
-- [ ] B-1. 日本語ID終端のトークナイズ検証(1行フィクスチャ)
+- [x] B-1. 日本語ID終端のトークナイズ検証(1行フィクスチャ)
 - [ ] B-2. コア文法定義(コンテキストマップ/用語集/集約/フロー/決定表/性質/依存) → [詳細](docs/briefs/step-B-2-grammar.md)
 - [ ] B-3. `sugoroku.ashura` 作成とパース確認(正典サンプルとして内部整合) → [詳細](docs/briefs/step-B-3-sugoroku.md)
 
@@ -61,7 +61,7 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 ## メモ・決定事項
 
 - advisor 判断: LSP検査3種が「何を構文化すべきか」を規定する。不変条件の量化式・ガード条件式・性質本文はどの検査も参照しないため、Phase 0 では自由文字列/緩い参照拾いに留める(作り込まない)
-- 日本語識別子は Langium デフォルトの ASCII専用 `ID` 終端では通らないため、Unicode範囲の ID 終端に差し替える必要がある(B-1で最優先検証)
+- 日本語識別子は Langium デフォルトの ASCII専用 `ID` 終端では通らないため、Unicode範囲の ID 終端に差し替える必要がある(B-1で最優先検証)。確定した終端: `/[_a-zA-Z぀-ヿ一-鿿][\w぀-ヿ一-鿿]*/`(平仮名+片仮名: U+3040-30FF、漢字: U+4E00-9FFF)。Chevrotainのlongest-match規則によりキーワード接頭辞を含むID(`状態` キーワード vs `状態確認` というID)も正しく分離されることを `packages/ashura-core/test/spike-unicode-id.test.ts` で確認済み
 - `.ashura` はMarkdown文書の逐語パースではなく新しい具象構文への翻訳。パイプ表・バナーはそのまま持ち込まない
 - 正典 `sugoroku.ashura` は内部整合させたサンプルとし、検査3が拾うべき壊れたケース(存在しないイベントへの契機参照)は別の負フィクスチャ側に用意する
 - 完了判定は「パースできる」だけでは不十分。検査ごとに正常系・異常系のテストがあることを Phase 0 の受け入れ条件とする
