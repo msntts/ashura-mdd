@@ -26,3 +26,6 @@ coverage/
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# Claude Code local runtime state
+.claude/scheduled_tasks.lock
