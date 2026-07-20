@@ -80,4 +80,23 @@ describe('checkDrift (フィクスチャ駆動、sugoroku.ashuraの宣言に対�
     });
     expect(result.divergence).toBeUndefined();
   });
+
+  test('②③がともに推論不能(undefined)な宣言は「証拠なし」を「両者一致」と誤認せず三者バラバラとして人間裁定(最優先)に上がる', () => {
+    const declaration: DeclarationId = { scope: 'ゲーム', kind: '遷移', name: '募集中->進行中' };
+    const implementationInference = fixtureSource(new Map());
+    const independentDerivation = fixtureSource(new Map());
+
+    const result = checkDrift(
+      { declaration, statement: 'プレイヤー数が2人以上になったら開始' },
+      implementationInference,
+      independentDerivation,
+      NOW,
+    );
+
+    expect(result.diagnosisResult).toEqual({
+      diagnosis: '三者バラバラ',
+      destination: '人間裁定(最優先)',
+    });
+    expect(result.divergence).toMatchObject({ state: '裁定待ち' });
+  });
 });

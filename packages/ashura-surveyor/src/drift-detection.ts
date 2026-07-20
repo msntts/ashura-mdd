@@ -28,6 +28,11 @@ export interface DriftCheckResult {
 }
 
 function compare(a: string | undefined, b: string | undefined): Match {
+  // 両方 undefined(=どちらの情報源も何も言えない)を「一致」と誤認しない。
+  // 「証拠がない」は「証拠が一致している」ではないため、常に乖離として扱う
+  if (a === undefined || b === undefined) {
+    return '乖離';
+  }
   return a === b ? '一致' : '乖離';
 }
 
