@@ -70,6 +70,36 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 - `pnpm -F ashura-surveyor build`
 - `pnpm -F ashura-surveyor test`
 
+## Phase 2 - Implementation Plan (検証系: アドバーサリー)
+
+### プロジェクト概要
+
+`packages/ashura-surveyor` に、`domain/ashura.model.md` 文脈「検証」のフロー「攻撃」を実装する。ROADMAP.md の Phase 2 の3項目(性質宣言→プロパティベーステスト生成・失敗セマンティクス宣言→フォールトインジェクションシナリオ生成・独立導出の担保)に対応する。
+
+### スコープ決定
+
+- **SUT-vs-フィクスチャ観測結果**: Phase 1 と同じ理由(生成対象のコードは Phase 3 まで存在しない)で、反例探索・フォールト注入の**実行結果**をフィクスチャで代替する。スタブSUTは作らない(Phase 3 との境界がにじむため)。決定的コアは「検証タスクの列挙」と「観測結果の集約(合格/反例)」であり、実行そのもの(非決定的)は `CounterexampleSearch` インターフェースの裏に隔離する(Phase 1 の `InferenceSource` と同型)
+- **独立導出の構造的保証**: Phase 1 の②③はモデル外の情報(フィクスチャ)だったが、Phase 2 の入力(性質・失敗セマンティクス)は `sugoroku.ashura` のモデル宣言そのものである。よって手書きフィクスチャではなく、`ashura-core` でパースした実際の AST(`PropertyEntry` / `DependencyEntry`、`ast.ts` に既存)を直接入力とする。検証タスク列挙関数の入力型を `ast.Model` のみに限定することで、「検証ケースはモデルの宣言のみから導出し、生成されたコードを見て作らない」という性質を型シグネチャで構造的に保証する(コード生成物への参照経路を持たせない)。`ashura-surveyor` は `ashura-core` に依存を追加する
+
+### 操作仕様
+
+- `packages/ashura-surveyor/package.json` に `ashura-core`(workspace依存)・`langium`(テストでの `parseHelper` 用)を追加する
+- **検証タスク列挙**: `ast.Model` を入力に、`PropertyBlock.properties`(性質宣言)・`DependencyBlock.entries`(失敗セマンティクス宣言)を検証タスク(`VerificationTask`)として列挙する純粋関数を実装する
+- **観測結果の集約**: 検証タスクごとに `CounterexampleSearch`(非決定的要素を隔離するインターフェース)で反例探索/フォールト注入を実行し、`ObservationResult`(合格/反例)を集める。全タスクの結果を `観測結果確定` に相当する `VerificationRunSummary` に集約する
+- **統合テスト**: `sugoroku.ashura` を実際にパースし、その AST(性質4件・依存2件)から検証タスクを列挙 → フィクスチャの観測結果(合格/反例混在パターン)を注入 → 集約結果を確認する一気通貫のテストを書く(Phase 1 で乖離ライフサイクル配線の欠落を防げなかった反省から、集約までを必ずテストする)
+
+### 受け入れ条件
+
+- `packages/ashura-surveyor` が pnpm workspace 配下で build/test 通る
+- 検証タスク列挙が `sugoroku.ashura` の性質4件・依存2件を過不足なく列挙することをテストで確認する
+- 観測結果集約が合格/反例混在パターンで正しい `VerificationRunSummary`(全合格 / 反例あり)を返すことをテストで確認する
+- 一気通貫の統合テスト(パース→列挙→観測→集約)が green
+
+### 完了条件
+
+- `pnpm -F ashura-surveyor build`
+- `pnpm -F ashura-surveyor test`
+
 ---
 
 ## 🔥 Hotfix(最優先)

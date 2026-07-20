@@ -9,7 +9,11 @@
     "build": "tsc -b",
     "test": "vitest run"
   },
+  "dependencies": {
+    "ashura-core": "workspace:*"
+  },
   "devDependencies": {
+    "langium": "~4.3.1",
     "typescript": "~7.0.2",
     "vitest": "~4.1.10"
   }
