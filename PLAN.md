@@ -162,6 +162,50 @@ Phase 1・2 で確立した「非決定的要素(LLM)はインターフェース
 - C-1で判明: `langium/test` の `parseHelper` はデフォルトでは validation フェーズを実行しない(lexing/parsing/linkingは常に走るが、カスタム `ValidationChecks` を動かすには `parse(source, { validation: true })` を明示する必要がある)。C-2・C-3のテストでも同様に指定すること
 - validatorは `packages/ashura-core/src/language/ashura-validator.ts` に集約し、`registerValidationChecks()` を `ashura-module.ts` の `createAshuraServices` 内で呼んで登録する方式。C-2・C-3もこのファイルにチェックメソッドを追記する
 
+## Phase 4 - Implementation Plan (方言機構)
+
+### プロジェクト概要
+
+`packages/ashura-dialect-ui` に、ADR-0002(方言は継承ではなく脱糖で拡張する)の最小実証を実装する。ROADMAP.md の Phase 4 の4項目に対応するが、フルスケールでの実装は行わない(下記スコープ決定)。
+
+### スコープ決定
+
+- **最小構成 = 糖衣構文1つ**: `ashura-dialect-ui` の README が挙げる三点セット(トークン/合成規則/trait + 3種のLSP検査 + 3種の検証アダプタ)を丸ごと実装するのは、Phase 0 で「examples 4題を一気に `.ashura` 化しない」と決めたのと同じ罠(一気に広げて何も実証しない)。`trait`(CLAUDE.md 記載の「状態機械の重複は trait〈基底状態機械の取り込み〉で解決」)1つに絞り、アーキテクチャ全体(構文糖衣→脱糖→コア語彙→既存サーベイヤー)を実証することを優先する
+- **核心は「サーベイヤーは脱糖後のコア語彙のみを見る」(ROADMAP Phase4 の4項目目)**: 脱糖だけを単体テストして終わりにすると Phase 1 の乖離ライフサイクル配線漏れと同じ「テストは緑だが半分のパイプライン」になる。方言ソース→脱糖→コア `ast.Model` →**Phase 1-3 で実装済みの既存サーベイヤー関数(`enumerateModelDeclarations`/`enumerateVerificationTasks`/`analyzeGaps`)がコード変更なしでそのまま動く**ことを一気通貫でテストする。これが受け入れ条件の中核
+- **脱糖の出力形式**: 方言ASTからコアの `.ashura` テキストを生成し、`ashura-core` の `createAshuraServices`/`parseHelper` で再パースして本物の `ast.Model` を得る(コアASTノードを直接構築する方式は `$container`/参照解決が壊れやすく採用しない)
+- **コア文法不可侵(ADR-0002 / CLAUDE.md 絶対規則)**: `packages/ashura-core/src/language/ashura.langium` には一切手を入れない。方言は独立した Langium プロジェクト(独自の文法)として実装する。もし方言を通すためにコア文法を編集したくなったら、それは継承の道であり ADR-0002 が拒否した経路なので即座に止まる
+- **方言の憲法(ROADMAP Phase4 の2項目目)はコードではない**: `domain/ashura.model.md` はモデル権威(仕様の真実はモデルのみが持つ)の対象そのもの。人間ゲート・自己適用性の原則により、この追記は Phase 1-3 の実装コミットと同列に扱わず、**草稿としてユーザーに提示し明示的な承認を得てから**別コミットにする(通常の実装コミットのように push まで自動で進めない)
+- **プラグイン仕様(1項目目)・検証アダプタ**: 三点セットを表す TypeScript インターフェースとして定義する。追加LSP検査は代表1つ(またはインターフェースのみ)。検証アダプタ(視覚回帰・axe系a11y監査などの外部ツール実行)は非決定的要素なので、Phase 1-3 の `InferenceSource`/`CounterexampleSearch` と同型のフィクスチャシームで隔離する(実ツール連携は将来フェーズ送り)
+
+### 操作仕様
+
+- `packages/ashura-dialect-ui` に独立した Langium プロジェクトを立てる(`ashura-core` と同様の tsconfig/vitest 構成、`ashura-core` への依存を追加して脱糖後の再パースに使う)
+- 最小文法: `trait`(名前付き状態機械テンプレート: 状態・遷移・禁止のみ)と、`集約` の trait 取り込み構文(`uses <trait名>` 相当)
+- 脱糖: 方言ASTを受け取り、trait の状態・遷移・禁止を取り込み先の集約定義に展開したコアの `.ashura` テキストを生成する関数。生成したテキストを `ashura-core` で再パースし `ast.Model` を返す
+- プラグインインターフェース: `{ parse, desugar }` + 追加LSP検査(代表1つ) + `VerificationAdapter`(検証アダプタ、フィクスチャシーム)
+- 統合テスト: trait を使った方言ソース→脱糖→コア `ast.Model` に対して、既存の `enumerateModelDeclarations`・`analyzeGaps` 等を変更なしで呼び出し、trait 側で定義した禁止遷移がちゃんと合流していること(=`analyzeGaps` が質問を出さないこと)を確認する
+
+### 受け入れ条件
+
+- `packages/ashura-dialect-ui` が pnpm workspace 配下で build/test 通る
+- trait を含む方言ソースが脱糖され、意味的に等価な手書きコア `.ashura` をパースした場合と同じ `ast.Model` 相当の情報(状態・遷移・禁止)を持つことをテストで確認する
+- 脱糖後の `ast.Model` に対して Phase 1-3 の既存サーベイヤー関数がコード変更なしで正しく動作する(測量器は一つ、の実証)
+- `ashura-core/src/language/ashura.langium` への変更がないこと(git diff で確認)
+
+### 完了条件
+
+- `pnpm -F ashura-dialect-ui build`
+- `pnpm -F ashura-dialect-ui test`
+- 方言の憲法草稿(`domain/ashura.model.md` への追記案)はユーザー提示・承認待ちの別コミットとして扱い、この完了条件には含めない
+
+### メモ・決定事項(Phase 4)
+
+- code-reviewで判明: 脱糖時に guard.kind が「契機」の場合、対応するイベント宣言(フロー)がないとコアの `checkTriggerReferencesExistingEvent` がエラーを出す。guard.kind を「条件」に読み替えて検査を回避するのは意味論を歪める誤魔化しなので不採用。代わりに `desugarTriggerFlow` で契機ごとに最小のコマンド+イベント宣言を持つフローを生成し、コアの意味論検査が実際に通る完全な脱糖にした
+- code-reviewで判明: `assertNoParseErrors` が lexer/parser エラーのみを見て `document.diagnostics`(バリデーション診断)を無視していたため、上記の契機/イベント不整合が握りつぶされ「テストは緑だが半分のパイプライン」になっていた。severity=Error の診断のみを失敗条件に含めるよう修正(warningは許容: 方言側の変数なし警告・脱糖後コアの語彙警告は正当な最小構成でも出うるため)
+- 未対応(スコープ外、将来メモ): `DialectPlugin.parse`/`desugar` は呼び出しのたびに Langium サービス一式を再生成している。テストでの隔離目的の再生成とは異なり、本番のLSP経由での繰り返し呼び出しでは応答遅延の要因になりうる(code-review指摘、PLAUSIBLE)。最小構成では対応せず、実LSP統合のフェーズでキャッシュ方針を検討する
+
+---
+
 ## 完了済みフェーズ
 
 - Phase A: workspace + Langium scaffold `78d2f86..78d2f86`

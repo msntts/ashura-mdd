@@ -1,0 +1,14 @@
+{
+  "projectName": "AshuraUi",
+  "languages": [
+    {
+      "id": "ashura-ui",
+      "grammar": "src/language/ashura-ui.langium",
+      "fileExtensions": [".ashura-ui"],
+      "textMate": {
+        "out": "syntaxes/ashura-ui.tmLanguage.json"
+      }
+    }
+  ],
+  "out": "src/language/generated"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "ashura-dialect-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "scripts": {
+    "langium:generate": "langium generate",
+    "build": "pnpm run langium:generate && tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ashura-core": "workspace:*",
+    "langium": "~4.3.1"
+  },
+  "devDependencies": {
+    "ashura-surveyor": "workspace:*",
+    "langium-cli": "~4.3.0",
+    "typescript": "~7.0.2",
+    "vitest": "~4.1.10"
+  }
+}
