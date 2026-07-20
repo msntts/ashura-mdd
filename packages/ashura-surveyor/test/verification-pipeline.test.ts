@@ -1,23 +1,7 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { createAshuraServices, type Model } from 'ashura-core';
-import { EmptyFileSystem } from 'langium';
-import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { runVerification, type CounterexampleSearch, type ObservationResult } from '../src/observation.js';
 import { enumerateVerificationTasks, type VerificationTask } from '../src/verification-task.js';
-
-const sugorokuPath = fileURLToPath(new URL('../../ashura-core/examples/sugoroku.ashura', import.meta.url));
-const sugorokuSource = readFileSync(sugorokuPath, 'utf-8');
-
-async function parseSugoroku(): Promise<Model> {
-  const services = createAshuraServices(EmptyFileSystem).Ashura;
-  const parse = parseHelper<Model>(services);
-  const document = await parse(sugorokuSource, { documentUri: sugorokuPath, validation: true });
-  expect(document.parseResult.lexerErrors).toHaveLength(0);
-  expect(document.parseResult.parserErrors).toHaveLength(0);
-  return document.parseResult.value;
-}
+import { parseSugoroku } from './support/parse-sugoroku.js';
 
 function allPassSearch(): CounterexampleSearch {
   return { search: (task) => ({ task, outcome: '合格' }) };

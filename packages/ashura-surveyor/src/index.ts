@@ -4,3 +4,8 @@ export * from './divergence-lifecycle.js';
 export * from './drift-detection.js';
 export * from './verification-task.js';
 export * from './observation.js';
+export * from './model-status.js';
+export * from './model-declarations.js';
+export * from './generation.js';
+export * from './idempotency.js';
+export * from './facilitator.js';

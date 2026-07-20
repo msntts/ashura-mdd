@@ -100,6 +100,44 @@ Langium ベースのコアDSL(`.ashura`)を `packages/ashura-core` に立て、`
 - `pnpm -F ashura-surveyor build`
 - `pnpm -F ashura-surveyor test`
 
+## Phase 3 - Implementation Plan (生成系: ジェネレーター+ファシリテーター)
+
+### プロジェクト概要
+
+`packages/ashura-surveyor` に、`domain/ashura.model.md` 文脈「生成」のフロー「コード生成」と文脈「モデル編集」のフロー「ファシリテーション」の決定的な骨格を実装する。ROADMAP.md の Phase 3 の3項目に対応する。
+
+### スコープ決定
+
+Phase 1・2 で確立した「非決定的要素(LLM)はインターフェースの裏に隔離し、決定的コアを実装する」パターンをそのまま踏襲する。ユーザーには Phase 1 で一度確認済みであり、Phase 2 でも同型の判断を踏襲したため、Phase 3 でも同じ前提で進める(改めて確認は取らない)。3本柱に分解すると、実際に非決定的(LLM)なのは「コード実体の生成」と「対話そのもの」のみで、残りは決定的コアとして実装できる:
+
+- **柱1(生成ゲート+トレース表完全性)**: 決定的。前提チェック(`モデル成果物.状態 == 承認済み`)とトレース表完全性検査(Phase 1 の `trace-table.ts` を再利用)。LLM境界はコード実体の生成のみ、`CodeEmitter` インターフェースの裏に隔離しフィクスチャで代替する
+- **柱2(冪等性)**: 完全に決定的。「バイト同一ではなく検証結果等価」を検証するには Phase 2 の `runVerification` がそのまま使える。2回の生成(コードバイトは異なる想定のフィクスチャ)をそれぞれ検証し、結果集合が一致することを確認する
+- **柱3(ファシリテーター)**: 決定的な下地(草稿モデルの構造的欠落を機械的に検出し質問アジェンダを作る)+ 対話そのもの(LLM、Phase 3 では実装しない)。決定的な下地は「禁止遷移が0件の集約」の検出のみに絞る(「失敗系・境界規則」は自由文字列からの検出になり誤検知リスクが高いため、Phase 3 のスコープ外とし ROADMAP に明記する)
+
+**モデル成果物ステータスの最小表現**: 生成ゲートには「承認済みかどうか」の判定が要る。`文脈 モデル編集` の集約「モデル成果物」(状態: 草稿→検査通過→レビュー中→承認済み、遷移条件つき)をフルに実装するのは投機的抽象化になるため、Phase 3 では状態の列挙型(`ModelStatus`)とゲート判定のみを実装し、遷移ロジックを持つ集約そのものは作らない
+
+**トレース表完全性の抜け穴に対する対策**: `CodeEmitter` が返す `TraceTable` は「言及した宣言」のみを含みうるため、`findUntracedDeclarations` だけでは宣言の丸ごとの欠落(entryそのものが無い)を検出できない。モデルの全宣言(遷移・不変条件・性質・失敗セマンティクス)を独立に列挙する `enumerateModelDeclarations`(`ast.Model` のみを入力とする)を実装し、emitter の出力と突き合わせて欠落宣言を空 `codeLocations` として補完してから完全性検査にかける
+
+### 操作仕様
+
+- **柱1**: `model-status.ts`(`ModelStatus` 型)、`model-declarations.ts`(`enumerateModelDeclarations`: 遷移・不変条件・性質・失敗セマンティクスを `DeclarationId` として列挙)、`generation.ts`(`CodeEmitter` インターフェース、`generate(model, status, emitter): GenerationResult`。未承認なら `生成失敗`、トレース表が不完全(宣言の欠落を含む)なら `生成失敗`、両方満たせば `生成完了(コード, トレース表)`)
+- **柱2**: `idempotency.ts`(`checkIdempotency`: 2つの検証タスク実行結果〈`CounterexampleSearch` 2系統〉を `runVerification` に通し、結果集合が一致するかを比較する `IdempotencyCheckResult`)
+- **柱3**: `facilitator.ts`(`analyzeGaps(model): readonly FacilitationQuestion[]`。禁止遷移が0件の集約を検出し質問を生成する)
+- 統合テスト: `sugoroku.ashura` を実パースし、(a) 完全なトレース表を返すフィクスチャemitterで `生成完了` になること、(b) 宣言が1件欠けたフィクスチャemitterで `生成失敗`(トレース表不完全)になること、(c) 未承認ステータスで `生成失敗`(モデル未承認)になることを確認する
+
+### 受け入れ条件
+
+- `packages/ashura-surveyor` が pnpm workspace 配下で build/test 通る
+- 生成ゲートが未承認モデルを拒否すること(ゲート不可迂回性のテスト)
+- トレース表の宣言欠落(entryごと無い場合を含む)が `生成失敗` として検出されること(黙って落とさない)
+- 冪等性検証が「コードバイトは異なるが検証結果は一致」のフィクスチャで `equivalent: true`、結果が食い違うフィクスチャで `equivalent: false` を返すこと
+- ファシリテーター欠落分析が禁止遷移のない集約を検出すること
+
+### 完了条件
+
+- `pnpm -F ashura-surveyor build`
+- `pnpm -F ashura-surveyor test`
+
 ---
 
 ## 🔥 Hotfix(最優先)
