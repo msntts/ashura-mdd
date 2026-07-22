@@ -204,6 +204,37 @@ Phase 1・2 で確立した「非決定的要素(LLM)はインターフェース
 - code-reviewで判明: `assertNoParseErrors` が lexer/parser エラーのみを見て `document.diagnostics`(バリデーション診断)を無視していたため、上記の契機/イベント不整合が握りつぶされ「テストは緑だが半分のパイプライン」になっていた。severity=Error の診断のみを失敗条件に含めるよう修正(warningは許容: 方言側の変数なし警告・脱糖後コアの語彙警告は正当な最小構成でも出うるため)
 - 未対応(スコープ外、将来メモ): `DialectPlugin.parse`/`desugar` は呼び出しのたびに Langium サービス一式を再生成している。テストでの隔離目的の再生成とは異なり、本番のLSP経由での繰り返し呼び出しでは応答遅延の要因になりうる(code-review指摘、PLAUSIBLE)。最小構成では対応せず、実LSP統合のフェーズでキャッシュ方針を検討する
 
+## Phase 5 - Implementation Plan (ブートストラップ)
+
+### プロジェクト概要
+
+ROADMAP.md の Phase 5 の2項目(自己モデルの `.ashura` 化・環境自身の開発プロセスのライフサイクル適用)を実装する。この環境自身のモデル(`domain/ashura.model.md`)を、Phase 0-4 で作ったコアDSL・サーベイヤーの実測対象に乗せることで、性質「自己適用性」を実証する。
+
+### スコープ決定(ユーザー承認済み)
+
+- **項目1(自己モデルの.ashura化)**: `文脈 X { 集約... フロー... }` というMarkdown側のネスト構造は、コアDSL文法(`Model: (elements+=ModelElement)*` がフラットな列であることに起因し表現できない。Phase 0 の B-3(すごろく翻訳)と同じ方針で「原文の暗黙の対応を明示化する」翻訳を行う: `契機` ガードの参照先イベントが存在しない箇所(例: `モデル成果物` の `LSP全検査パス`・`レビュー依頼`・`人間の承認`・`差し戻し`、`乖離` の `人間裁定`)に対し、対応するコマンド→イベント宣言を持つフローを追加した。フロー内にしか書けない「前提」「トレース表の完全性」は `検査`(StaticCheckDecl)へ、「冪等性」「独立導出」は文脈ごとの `性質` ブロックへ再配置した
+- **`domain/ashura.model.md` の廃止**: ユーザーに「共存させる(Markdownは解説用に残す)」か「Markdownを廃止し.ashuraのみにする」かを確認し、後者を選択。二重管理(同期コスト)を避けるため .ashura を唯一の権威とし、CLAUDE.md・README.md・ashura-surveyorのソースコメント中の参照をすべて更新した
+- **項目2(開発プロセスのライフサイクル適用)**: 「モデルの承認を自動化するコードを書かない」(人間ゲート原則)と両立させるため、承認そのものは自動化せず、Phase 4 の `ashura-dialect-ui/test/surveyor-integration.test.ts` と同型の一気通貫テストとして実装した。既存のサーベイヤー関数(`enumerateModelDeclarations`・`analyzeGaps`・`generate`)を自己モデルの実ASTにコード変更なしで適用し、「承認済みになった後」のゲート・トレース表完全性・欠落分析が機能することを検証する。これにより「測量器は一つ、自己モデルも特別扱いしない」ことを実証する
+
+### 操作仕様
+
+- `domain/ashura.model.ashura` を新規作成(用語集1・集約2・フロー5・決定表1・性質3ブロック・依存1ブロックの14トップレベル要素)
+- `packages/ashura-core/test/self-model.test.ts`: 自己モデルのパース+診断ゼロ(要素14件)を検証
+- `packages/ashura-surveyor/test/support/parse-self-model.ts`: `parseSugoroku` と同型の自己モデル読み込みヘルパー
+- `packages/ashura-surveyor/test/self-model-bootstrap.test.ts`: `enumerateModelDeclarations`(遷移7・不変条件3・性質6・依存4)・`analyzeGaps`(2集約とも質問0件)・`generate`(未承認3ステータスで生成失敗、承認済み+完全トレース表で生成完了、宣言欠落で生成失敗)を自己モデルに対して検証
+
+### 受け入れ条件
+
+- `pnpm -F ashura-core test` / `pnpm -F ashura-surveyor test` が green
+- 自己モデルの実ASTに対し、Phase 1-3 の既存サーベイヤー関数がコード変更なしで正しく動作する
+- `domain/ashura.model.md` への参照が(歴史的記録であるPLAN.md/ROADMAP.mdの完了済み項目を除き)残っていない
+
+### 完了条件
+
+- `pnpm -F ashura-core test`
+- `pnpm -F ashura-surveyor test`
+- `domain/ashura.model.md` 削除、`domain/ashura.model.ashura` 追加(コミット済み)
+
 ---
 
 ## 完了済みフェーズ
