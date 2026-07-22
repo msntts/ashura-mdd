@@ -2,7 +2,7 @@ import { runVerification, type CounterexampleSearch, type VerificationRunSummary
 import type { VerificationTask } from './verification-task.js';
 
 /**
- * 冪等性(domain/ashura.model.md 文脈「生成」不変条件「冪等性」)。
+ * 冪等性(domain/ashura.model.ashura 文脈「生成」不変条件「冪等性」)。
  * 「同一モデル+同一規約からの再生成は、検証結果が等価なコードを生む」。
  * バイト同一は要求しない(LLM非決定性の受容)。等価性は検証スイート(Phase 2 の
  * runVerification)の結果集合で定義する: コードバイトが異なっていても、

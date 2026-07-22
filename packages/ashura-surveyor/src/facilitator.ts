@@ -1,7 +1,7 @@
 import { isAggregate, isForbidden, type Model } from 'ashura-core';
 
 /**
- * ファシリテーション(domain/ashura.model.md フロー「ファシリテーション」の
+ * ファシリテーション(domain/ashura.model.ashura フロー「ファシリテーション」の
  * ポリシー「対話中のとき→失敗系・禁止遷移・境界規則を能動的に質問する」の決定的な下地)。
  *
  * 草稿モデルの構造的な欠落を機械的に検出し、質問アジェンダを生成する。

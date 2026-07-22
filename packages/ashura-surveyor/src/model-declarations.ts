@@ -10,7 +10,7 @@ import type { DeclarationId } from './trace-table.js';
 
 /**
  * モデルの全宣言(遷移・不変条件・性質・失敗セマンティクス)を、承認済みモデルの
- * AST(`ast.Model`)のみから列挙する(domain/ashura.model.md 文脈「生成」の不変条件
+ * AST(`ast.Model`)のみから列挙する(domain/ashura.model.ashura 文脈「生成」の不変条件
  * 「トレース表の完全性」が対象とする宣言の集合)。
  *
  * 入力型が ast.Model のみであることは Phase 2 の `enumerateVerificationTasks` と同じ

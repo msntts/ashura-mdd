@@ -54,10 +54,20 @@
       コア `ast.Model` に対し、Phase 1-3 の既存サーベイヤー関数(`enumerateModelDeclarations`・
       `analyzeGaps`)をコード変更なしで適用できることを一気通貫テストで実証
 
-## Phase 5 — ブートストラップ(成熟の儀式)
+## Phase 5 — ブートストラップ(成熟の儀式、最小構成のみ完了)
 
-- [ ] 自己モデルを `.ashura` 化し、サーベイヤー自身の測量対象に乗せる
-- [ ] Ashura の開発プロセス自体が Ashura のライフサイクル(草稿→検査→レビュー→承認)を通る
+- [x] 自己モデルを `.ashura` 化し、サーベイヤー自身の測量対象に乗せる —
+      `domain/ashura.model.ashura`。`文脈`によるネストはコアDSLで表現できないため
+      フラットな要素列に翻訳(暗黙の対応を明示化: 契機トリガー用のイベントを最小限追加、
+      冪等性/独立導出などフロー内不変条件は `検査`/`性質` へ再配置)。
+      `domain/ashura.model.md` は廃止(ユーザー承認済み、二重管理を避けるため)。
+      `packages/ashura-core` にパーステスト追加、診断ゼロ・要素14件で green
+- [x] Ashura の開発プロセス自体が Ashura のライフサイクル(草稿→検査通過→レビュー中→承認済み)を通る —
+      性質「自己適用性」の実証として、Phase 1-3 の既存サーベイヤー関数
+      (`enumerateModelDeclarations`・`analyzeGaps`・`generate`)を自己モデルの実ASTに
+      コード変更なしで適用する一気通貫テストを追加(`packages/ashura-surveyor/test/self-model-bootstrap.test.ts`、
+      Phase 4の`ashura-dialect-ui`と同型のパターン)。人間ゲート(承認そのもの)は自動化せず、
+      承認済みになった後のゲート・トレース表完全性・欠落分析が機能することのみを検証する
 
 ## 非目標
 

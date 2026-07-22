@@ -1,7 +1,7 @@
 import type { VerificationTask } from './verification-task.js';
 
 /**
- * 観測結果の集約(domain/ashura.model.md フロー「攻撃」の
+ * 観測結果の集約(domain/ashura.model.ashura フロー「攻撃」の
  * イベント「観測結果確定(合格/反例)」に対応)。
  */
 export type ObservationOutcome = '合格' | '反例';

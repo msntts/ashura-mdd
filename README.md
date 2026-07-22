@@ -46,7 +46,7 @@ Ashura の答えは **ビューの切り替え** — 人間はコードではな
 ## リポジトリ構成
 
 ```
-domain/ashura.model.md   # 自己モデル。この環境自身の仕様(ブートストラップ)
+domain/ashura.model.ashura # 自己モデル。この環境自身の仕様(ブートストラップ、機械可読)
 steering/                # 技術規約(どう作るか)
 examples/                # ケーススタディ4題(DSL表現力の実験記録)
 packages/

@@ -1,7 +1,7 @@
 import { isDependencyBlock, isPropertyBlock, type Model } from 'ashura-core';
 
 /**
- * 検証タスク(domain/ashura.model.md 文脈「検証」フロー「攻撃」の
+ * 検証タスク(domain/ashura.model.ashura 文脈「検証」フロー「攻撃」の
  * 「性質宣言ごとに」「失敗セマンティクス宣言ごとに」に対応)。
  */
 export type VerificationTaskKind = '性質' | '失敗セマンティクス';

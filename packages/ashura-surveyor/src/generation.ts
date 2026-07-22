@@ -41,7 +41,7 @@ function reconcileTraceTable(expected: readonly DeclarationId[], emitted: TraceT
 }
 
 /**
- * domain/ashura.model.md 文脈「生成」フロー「コード生成」の実装。
+ * domain/ashura.model.ashura 文脈「生成」フロー「コード生成」の実装。
  * 前提「モデル成果物.状態 == 承認済み」を満たさない場合、および
  * トレース表の完全性(全宣言がコード上の対応位置を少なくとも1つ持つ)を
  * 満たさない場合は、黙って落とさず 生成失敗 として返す。

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { diagnose, type DiagnosisInput, type DiagnosisResult } from '../src/diagnosis.js';
 
-describe('diagnose (正常系: domain/ashura.model.md の決定表5パターン)', () => {
+describe('diagnose (正常系: domain/ashura.model.ashura の決定表5パターン)', () => {
   const cases: Array<[string, DiagnosisInput, DiagnosisResult]> = [
     [
       '一致,一致,一致 → 健全',
