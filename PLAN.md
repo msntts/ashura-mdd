@@ -138,6 +138,45 @@ Phase 1・2 で確立した「非決定的要素(LLM)はインターフェース
 - `pnpm -F ashura-surveyor build`
 - `pnpm -F ashura-surveyor test`
 
+## Phase 6 - Implementation Plan (ファシリテーターの対話実装)
+
+### プロジェクト概要
+
+`packages/ashura-surveyor/src/facilitator.ts` に、Phase 3 で下地のみ完了していた「対話そのもの」(LLM由来、非決定的)を実装する。ROADMAP.md Phase 6 に対応する。
+
+### スコープ決定(advisor判断採用)
+
+- **`analyzeGaps`/`FacilitationQuestion` は変更しない(additive only)**: `ashura-dialect-ui/test/surveyor-integration.test.ts`(Phase4)・`self-model-bootstrap.test.ts`(Phase5)は「既存サーベイヤー関数がコード変更なしで動く」ことを実証している。`topic` を union に広げてここを壊すと実証済みの性質そのものを破壊する。LLM由来の質問は別型 `DialogueQuestion`(`topic: '失敗系'` 固定)として型で区別する
+- **seam は既存ファイルに追加**: `InferenceSource`/`CounterexampleSearch`/`CodeEmitter`/`VerificationAdapter` と同型で `facilitator.ts` に追加する。新パッケージは作らない
+- **草稿更新の出力形式は Phase 4 の決定を再利用**: コアASTノードの直接構築は却下済み(`$container`/参照解決が壊れる)。回答から `.ashura` テキスト断片を生成し、既存の草稿テキストに追記した上で `createAshuraServices`/`parseHelper` で再パースする
+- **LLM由来トピックは「失敗系」1つのみ**: 境界規則は入れない(Phase 0「examples 4題を一気にやらない」/ Phase 4「trait 1つに絞る」と同じ判断)。将来フェーズ送りとしてROADMAPに明記済み
+- **人間ゲート**: セッションが触れてよいのは草稿まで。`モデル成果物` の状態遷移(検査通過/レビュー中/承認済み)は書かない(Phase 3 の「遷移ロジックを持つ集約は作らない」を維持)
+- **自己モデル変更は不要と判断**: `domain/ashura.model.ashura` の `フロー ファシリテーション` は `ポリシー: セッション終了 のとき` でイベント `セッション終了` を参照するが、対応する `コマンド X -> イベント セッション終了` の宣言はモデル中に存在しない。ただしコアの `checkTriggerReferencesExistingEvent`(`ashura-validator.ts:140`)は集約の `Transition` の契機文字列のみを検査対象とし、フローの `PolicyDecl` トリガーは検査対象外(現状 self-model.test.ts は診断ゼロで green)。また Phase 0-5 のどの実装も、モデルのフロー宣言をコードが字句的に駆動する設計にはなっていない(コードはモデルが記述する意味論の独立した実装)。よって今回の対話実装は自己モデルの編集を伴わない(方言の憲法・自己モデル.ashura化のような人間ゲート案件には該当しない)
+
+### 操作仕様
+
+- `packages/ashura-surveyor/src/facilitator.ts` に追加:
+  - `DialogueQuestion`型(`scope`・`topic: '失敗系'`・`question`。既存 `FacilitationQuestion` とは別型)
+  - `DialogueAnswer`型(回答内容。草稿に追記する `.ashura` テキスト断片を持つ)
+  - `DialogueAgent`インターフェース(seam): `askFailureModeQuestions(model: Model): Promise<readonly DialogueQuestion[]>` と `answer(question: FacilitationQuestion): Promise<DialogueAnswer>`
+  - `applyAnswer(sourceText: string, answer: DialogueAnswer): Promise<Model>`(既存草稿テキストに回答由来の断片を追記し、`ashura-core` で再パースして新しい `ast.Model` を返す。Phase4の脱糖と同型)
+- `packages/ashura-surveyor/test/facilitator.test.ts` に追加:
+  - フィクスチャ `DialogueAgent` を用意し、`NO_FORBIDDEN_TRANSITION_FIXTURE` を起点に閉ループ統合テストを書く: `analyzeGaps` が質問1件 → フィクスチャ回答(`禁止 X -> Y` を追記する断片)→ `applyAnswer` で再パース → 再度 `analyzeGaps` が0件
+  - `askFailureModeQuestions` のフィクスチャ実装が `DialogueQuestion`(`topic: '失敗系'`)を返す単体テスト(閉ループには含めない、型と生成のみ確認)
+
+### 受け入れ条件
+
+- `packages/ashura-surveyor` が pnpm workspace 配下で build/test 通る
+- 既存の `facilitator.test.ts` の2テスト(sugoroku/NO_FORBIDDEN_TRANSITION_FIXTURE)が変更なしで green のまま
+- 禁止遷移0件の草稿に対する閉ループ統合テスト(質問→回答→草稿更新→再測量で0件)が green
+- `DialogueQuestion` を返す単体テストが green
+- `domain/ashura.model.ashura` への変更がないこと(git diff で確認)
+
+### 完了条件
+
+- `pnpm -F ashura-surveyor build`
+- `pnpm -F ashura-surveyor test`
+
 ---
 
 ## 🔥 Hotfix(最優先)
