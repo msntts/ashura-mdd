@@ -177,6 +177,12 @@ Phase 1・2 で確立した「非決定的要素(LLM)はインターフェース
 - `pnpm -F ashura-surveyor build`
 - `pnpm -F ashura-surveyor test`
 
+### メモ・決定事項(Phase 6)
+
+- security-reviewで判明(medium・1回目): `DialogueAnswer.declarationText`(LLM由来)を未検証で草稿に挿入すると、構文的には妥当だが意図しない注入(閉じ括弧を含めて別ブロックに宣言を漏らす等)を再パース時のLSP検査だけでは検出できない。「AI出力不信」原則に従い、`insertIntoAggregate` に `禁止 <状態> -> <状態>` 単一宣言への形式検査(正規表現)を追加して対応した
+- security-reviewで判明(medium・2回目、再レビューで新規検出): 1回目の対応は `declarationText`(内容)のみを検証し、挿入先(`DialogueAnswer.scope`)はLLM出力のまま無検証だった。質問対象と異なる集約名を返された場合、無関係な集約に禁止遷移を注入できてしまう。`DialogueAnswer` から `scope` フィールドを削除し、`applyAnswer(sourceText, question, answer)` が決定的な `FacilitationQuestion.scope`(`analyzeGaps` が生成)から挿入先を決定する設計に変更して対応した。LLM由来の値は内容(declarationText)のみに限定し、挿入先の決定にLLM出力を関与させない
+- security-reviewで判明(low、対応せず将来課題): `insertIntoAggregate` の中括弧深度カウンタは文字列リテラル内の `{`/`}` を区別しない。不変条件テキストが波括弧を含む集約では挿入位置がずれる可能性がある。今回のフィクスチャでは該当しないため、実LLM配線フェーズ(将来フェーズ送り)で完全なトークナイザ相当の対応を検討する
+
 ---
 
 ## 🔥 Hotfix(最優先)

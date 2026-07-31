@@ -16,6 +16,10 @@ export const NO_FORBIDDEN_TRANSITION_FIXTURE = `
     "対象位置は常に0以上である"
   }
 }
+
+フロー サンプルフロー {
+  コマンド 完了する -> イベント 完了イベント
+}
 `;
 
 export const MULTI_INVARIANT_BLOCK_FIXTURE = `
